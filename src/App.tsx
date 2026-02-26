@@ -365,36 +365,41 @@ export default function App() {
     let animationFrameId: number;
 
     const spawnEnemy = () => {
+      const logicalWidth = canvas.clientWidth;
       const rand = Math.random();
       let type = EnemyType.BASIC;
       if (level >= 2 && rand > 0.7) type = EnemyType.FAST;
       if (level >= 3 && rand > 0.9) type = EnemyType.HEAVY;
       
-      gameData.current.enemies.push(new Enemy(canvas.width, type));
+      gameData.current.enemies.push(new Enemy(logicalWidth, type));
       gameData.current.enemiesSpawnedInLevel++;
     };
 
     const spawnPowerUp = () => {
+      const logicalWidth = canvas.clientWidth;
       let chance = POWERUP_SPAWN_CHANCE;
       if (level >= 15) {
         // Decrease chance as level increases
         chance = Math.max(0.02, POWERUP_SPAWN_CHANCE - (level - 15) * 0.01);
       }
       if (Math.random() < chance) {
-        gameData.current.powerUps.push(new PowerUp(canvas.width));
+        gameData.current.powerUps.push(new PowerUp(logicalWidth));
       }
     };
 
     const loop = (time: number) => {
+      const logicalWidth = canvas.clientWidth;
+      const logicalHeight = canvas.clientHeight;
+
       // Clear
       ctx.fillStyle = '#020617';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, logicalWidth, logicalHeight);
 
-      // Draw Stars (Static for now, could animate)
+      // Draw Stars
       ctx.fillStyle = '#fff';
       for (let i = 0; i < 50; i++) {
-        const x = (Math.sin(i * 123.45) * 0.5 + 0.5) * canvas.width;
-        const y = ((time * 0.05 + i * 50) % canvas.height);
+        const x = (Math.sin(i * 123.45) * 0.5 + 0.5) * logicalWidth;
+        const y = ((time * 0.05 + i * 50) % logicalHeight);
         ctx.globalAlpha = 0.5;
         ctx.fillRect(x, y, 2, 2);
       }
@@ -402,14 +407,15 @@ export default function App() {
 
       // Handle Input
       const { keys, player } = gameData.current;
+
       if (keys['ArrowLeft'] || keys['a']) player.x -= PLAYER_SPEED;
       if (keys['ArrowRight'] || keys['d']) player.x += PLAYER_SPEED;
       if (keys['ArrowUp'] || keys['w']) player.y -= PLAYER_SPEED;
       if (keys['ArrowDown'] || keys['s']) player.y += PLAYER_SPEED;
 
       // Clamp Player
-      player.x = Math.max(0, Math.min(canvas.width - PLAYER_SIZE, player.x));
-      player.y = Math.max(0, Math.min(canvas.height - PLAYER_SIZE, player.y));
+      player.x = Math.max(0, Math.min(logicalWidth - PLAYER_SIZE, player.x));
+      player.y = Math.max(0, Math.min(logicalHeight - PLAYER_SIZE, player.y));
 
       // Automatic Shooting
       const now = Date.now();
@@ -430,7 +436,7 @@ export default function App() {
       gameData.current.bullets = gameData.current.bullets.filter(b => {
         b.update();
         b.draw(ctx);
-        return b.y > 0 && b.x > 0 && b.x < canvas.width;
+        return b.y > 0 && b.x > 0 && b.x < logicalWidth;
       });
 
       // Update & Draw Enemy Bullets
@@ -463,7 +469,7 @@ export default function App() {
           return false;
         }
 
-        return b.y < canvas.height && b.x > 0 && b.x < canvas.width;
+        return b.y < logicalHeight && b.x > 0 && b.x < logicalWidth;
       });
 
       // Update & Draw Enemies
@@ -673,8 +679,8 @@ export default function App() {
       powerUpsPicked: 0,
     };
     if (canvasRef.current) {
-      gameData.current.player.x = canvasRef.current.width / 2 - PLAYER_SIZE / 2;
-      gameData.current.player.y = canvasRef.current.height - PLAYER_SIZE - 20;
+      gameData.current.player.x = canvasRef.current.clientWidth / 2 - PLAYER_SIZE / 2;
+      gameData.current.player.y = canvasRef.current.clientHeight - PLAYER_SIZE - 20;
     }
   };
 
