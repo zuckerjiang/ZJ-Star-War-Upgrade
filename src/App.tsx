@@ -473,7 +473,7 @@ export default function App() {
       });
 
       // Update & Draw Enemies
-      if (Math.random() < 0.02 * (1 + level * 0.25) && gameData.current.enemiesSpawnedInLevel < ENEMIES_PER_LEVEL * level) {
+      if (Math.random() < 0.04 * (1 + level * 0.25) && gameData.current.enemiesSpawnedInLevel < ENEMIES_PER_LEVEL * level) {
         spawnEnemy();
       }
 
