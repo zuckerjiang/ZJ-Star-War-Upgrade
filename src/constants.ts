@@ -44,5 +44,5 @@ export const POWERUP_DURATION = 8000;
 export const POWERUP_SPAWN_CHANCE = 0.15;
 
 // Level Constants
-export const ENEMIES_PER_LEVEL = 10;
+export const ENEMIES_PER_LEVEL = 15;
 export const LEVEL_DIFFICULTY_MULTIPLIER = 1.2;

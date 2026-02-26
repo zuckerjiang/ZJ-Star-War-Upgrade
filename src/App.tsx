@@ -473,7 +473,7 @@ export default function App() {
       });
 
       // Update & Draw Enemies
-      if (Math.random() < 0.04 * (1 + level * 0.25) && gameData.current.enemiesSpawnedInLevel < ENEMIES_PER_LEVEL * level) {
+      if (Math.random() < 0.02 * (1 + level * 0.25) && gameData.current.enemiesSpawnedInLevel < ENEMIES_PER_LEVEL * level) {
         spawnEnemy();
       }
 
@@ -627,10 +627,10 @@ export default function App() {
       }
 
       // Check Level Up
-      if (gameData.current.enemiesSpawnedInLevel >= ENEMIES_PER_LEVEL * level && gameData.current.enemies.length === 0) {
+      if (gameData.current.enemiesSpawnedInLevel >= ENEMIES_PER_LEVEL * level) {
         setLevel(l => {
           const next = l + 1;
-          if (next === 15) {
+          if (next % 5 === 0) { // Bonus life every 5 levels
             setLives(prev => prev + 1);
             playSound('powerup');
           }
