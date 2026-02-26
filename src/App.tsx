@@ -688,6 +688,59 @@ export default function App() {
     };
   }, []);
 
+  // Touch Controls for Mobile
+  useEffect(() => {
+    if (gameState !== GameState.PLAYING) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let isDragging = false;
+    let lastTouchX = 0;
+    let lastTouchY = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      lastTouchX = touch.clientX - rect.left;
+      lastTouchY = touch.clientY - rect.top;
+      isDragging = true;
+      e.preventDefault();
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const touchX = touch.clientX - rect.left;
+      const touchY = touch.clientY - rect.top;
+
+      const dx = touchX - lastTouchX;
+      const dy = touchY - lastTouchY;
+
+      gameData.current.player.x += dx;
+      gameData.current.player.y += dy;
+
+      lastTouchX = touchX;
+      lastTouchY = touchY;
+      e.preventDefault();
+    };
+
+    const handleTouchEnd = () => {
+      isDragging = false;
+    };
+
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [gameState]);
+
   // Resize Handler
   useEffect(() => {
     const handleResize = () => {
@@ -957,61 +1010,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Mobile Controls Overlay (Visible on touch devices) */}
-      {gameState === GameState.PLAYING && (
-        <div className="absolute bottom-8 left-0 w-full px-8 flex justify-between items-end z-10 md:hidden pointer-events-none">
-          <div className="grid grid-cols-3 gap-2 pointer-events-auto">
-            <div />
-            <button 
-              onMouseDown={() => gameData.current.keys['ArrowUp'] = true}
-              onMouseUp={() => gameData.current.keys['ArrowUp'] = false}
-              onTouchStart={() => gameData.current.keys['ArrowUp'] = true}
-              onTouchEnd={() => gameData.current.keys['ArrowUp'] = false}
-              className="w-14 h-14 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center active:bg-white/30"
-            >
-              <ChevronRight className="w-6 h-6 -rotate-90" />
-            </button>
-            <div />
-            <button 
-              onMouseDown={() => gameData.current.keys['ArrowLeft'] = true}
-              onMouseUp={() => gameData.current.keys['ArrowLeft'] = false}
-              onTouchStart={() => gameData.current.keys['ArrowLeft'] = true}
-              onTouchEnd={() => gameData.current.keys['ArrowLeft'] = false}
-              className="w-14 h-14 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center active:bg-white/30"
-            >
-              <ChevronRight className="w-6 h-6 rotate-180" />
-            </button>
-            <button 
-              onMouseDown={() => gameData.current.keys['ArrowDown'] = true}
-              onMouseUp={() => gameData.current.keys['ArrowDown'] = false}
-              onTouchStart={() => gameData.current.keys['ArrowDown'] = true}
-              onTouchEnd={() => gameData.current.keys['ArrowDown'] = false}
-              className="w-14 h-14 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center active:bg-white/30"
-            >
-              <ChevronRight className="w-6 h-6 rotate-90" />
-            </button>
-            <button 
-              onMouseDown={() => gameData.current.keys['ArrowRight'] = true}
-              onMouseUp={() => gameData.current.keys['ArrowRight'] = false}
-              onTouchStart={() => gameData.current.keys['ArrowRight'] = true}
-              onTouchEnd={() => gameData.current.keys['ArrowRight'] = false}
-              className="w-14 h-14 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl flex items-center justify-center active:bg-white/30"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          </div>
-
-          <button 
-            onMouseDown={() => gameData.current.keys[' '] = true}
-            onMouseUp={() => gameData.current.keys[' '] = false}
-            onTouchStart={() => gameData.current.keys[' '] = true}
-            onTouchEnd={() => gameData.current.keys[' '] = false}
-            className="w-24 h-24 bg-red-500/20 backdrop-blur-md border-4 border-red-500/50 rounded-full flex items-center justify-center active:scale-90 transition-transform pointer-events-auto"
-          >
-            <div className="w-16 h-16 bg-red-500 rounded-full shadow-lg shadow-red-500/50" />
-          </button>
-        </div>
-      )}
+      {/* Mobile Controls Overlay (Hidden as per request for drag controls) */}
     </div>
   );
 }
