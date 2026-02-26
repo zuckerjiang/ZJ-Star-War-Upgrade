@@ -110,20 +110,22 @@ class Enemy {
       // Draw Image
       ctx.drawImage(img, this.x, this.y, this.size, this.size);
     } else {
-      // Fallback to shapes
+      // Fallback to equilateral triangles
       ctx.shadowBlur = 15;
       ctx.shadowColor = this.glow;
       ctx.fillStyle = this.color;
       ctx.beginPath();
-      if (this.type === EnemyType.BASIC) {
-        ctx.moveTo(this.x + this.size / 2, this.y + this.size);
+      
+      // Calculate height for an equilateral triangle: height = side * sqrt(3) / 2
+      const eqHeight = this.size * (Math.sqrt(3) / 2);
+      
+      if (this.type === EnemyType.BASIC || this.type === EnemyType.FAST) {
+        // Pointing down
+        ctx.moveTo(this.x + this.size / 2, this.y + eqHeight);
         ctx.lineTo(this.x, this.y);
         ctx.lineTo(this.x + this.size, this.y);
-      } else if (this.type === EnemyType.FAST) {
-        ctx.moveTo(this.x + this.size / 2, this.y + this.size);
-        ctx.lineTo(this.x + this.size / 4, this.y);
-        ctx.lineTo(this.x + this.size * 3 / 4, this.y);
       } else {
+        // Heavy is a square, keep it as is
         ctx.rect(this.x, this.y, this.size, this.size);
       }
       ctx.closePath();
@@ -373,7 +375,12 @@ export default function App() {
     };
 
     const spawnPowerUp = () => {
-      if (Math.random() < POWERUP_SPAWN_CHANCE) {
+      let chance = POWERUP_SPAWN_CHANCE;
+      if (level >= 15) {
+        // Decrease chance as level increases
+        chance = Math.max(0.02, POWERUP_SPAWN_CHANCE - (level - 15) * 0.01);
+      }
+      if (Math.random() < chance) {
         gameData.current.powerUps.push(new PowerUp(canvas.width));
       }
     };
@@ -473,9 +480,9 @@ export default function App() {
         
         e.draw(ctx, enemyImg);
 
-        // Enemy Firing (Level >= 15)
-        if (level >= 15) {
-          const fireChance = Math.min(0.05, 0.005 + (level - 15) * 0.002);
+        // Enemy Firing (Level >= 10)
+        if (level >= 10) {
+          const fireChance = Math.min(0.05, 0.005 + (level - 10) * 0.002);
           if (Math.random() < fireChance) {
             gameData.current.enemyBullets.push(new Bullet(e.x + e.size / 2, e.y + e.size, 0, 4, '#ef4444', true));
           }
@@ -591,12 +598,13 @@ export default function App() {
           ctx.shadowColor = '#fff';
           ctx.fillStyle = '#fff';
           
-          // Player Ship Shape
+          // Player Ship Shape - Adjusted for better proportions
+          const eqHeight = PLAYER_SIZE * (Math.sqrt(3) / 2);
           ctx.beginPath();
           ctx.moveTo(player.x + PLAYER_SIZE / 2, player.y);
-          ctx.lineTo(player.x, player.y + PLAYER_SIZE);
-          ctx.lineTo(player.x + PLAYER_SIZE / 2, player.y + PLAYER_SIZE * 0.8);
-          ctx.lineTo(player.x + PLAYER_SIZE, player.y + PLAYER_SIZE);
+          ctx.lineTo(player.x, player.y + eqHeight);
+          ctx.lineTo(player.x + PLAYER_SIZE / 2, player.y + eqHeight * 0.8);
+          ctx.lineTo(player.x + PLAYER_SIZE, player.y + eqHeight);
           ctx.closePath();
           ctx.fill();
         }
@@ -745,8 +753,23 @@ export default function App() {
   useEffect(() => {
     const handleResize = () => {
       if (containerRef.current && canvasRef.current) {
-        canvasRef.current.width = containerRef.current.clientWidth;
-        canvasRef.current.height = containerRef.current.clientHeight;
+        const dpr = window.devicePixelRatio || 1;
+        const width = containerRef.current.clientWidth;
+        const height = containerRef.current.clientHeight;
+        
+        // Set display size (css pixels)
+        canvasRef.current.style.width = `${width}px`;
+        canvasRef.current.style.height = `${height}px`;
+        
+        // Set actual buffer size (physical pixels)
+        canvasRef.current.width = width * dpr;
+        canvasRef.current.height = height * dpr;
+        
+        // Scale all drawing operations by dpr
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+          ctx.scale(dpr, dpr);
+        }
       }
     };
     handleResize();
